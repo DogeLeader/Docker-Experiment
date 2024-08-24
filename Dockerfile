@@ -1,31 +1,36 @@
-# Use Kali Linux as the base image
-FROM kalilinux/kali-rolling:latest
+# Use the Kali Linux base image
+FROM kalilinux/kali-rolling
 
-# Install dependencies and tools
+# Update package list and install necessary packages
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y \
-    kali-linux-large \
-    curl \
-    gnupg \
-    nodejs \
-    npm \
+        git \
+        neofetch \
+        python3 \
+        python3-pip \
+        build-essential \
+        cmake \
+        libjson-c-dev \
+        libwebsockets-dev \
+        libssl-dev \
+        zlib1g-dev \
+        kali-tools-top10 \
     && apt-get clean
 
-# Install Wetty
-RUN npm install -g wetty
+# Install ttyd
+RUN mkdir /ttyd && \
+    cd /ttyd && \
+    git clone https://github.com/tsl0922/ttyd.git && \
+    cd ttyd && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install
 
-# Create a non-root user
-RUN useradd -ms /bin/bash user
-USER user
-WORKDIR /home/user
+# Set up ttyd to run on port 8080
+EXPOSE 8080
 
-# Set environment variables
-ENV PORT=3000
-ENV HOST=0.0.0.0
-
-# Expose the port
-EXPOSE 3000
-
-# Start Wetty
-CMD ["wetty", "--port", "3000", "--host", "0.0.0.0", "bash"]
-
+# Command to start ttyd with bash
+CMD ["ttyd", "-p", "8080", "bash"]
